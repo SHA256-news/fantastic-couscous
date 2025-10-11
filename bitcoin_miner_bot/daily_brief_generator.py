@@ -1,39 +1,14 @@
 # daily_brief_generator.py
-import google.generativeai as genai
-import os
 import logging
-from dotenv import load_dotenv
 from typing import List, Dict, Any
-import requests
-from bs4 import BeautifulSoup
-import re
 import markdown # For Markdown to HTML conversion
+from bitcoin_miner_bot.gemini_interface import (
+    _robust_generate_content,
+    generate_brief_deck,
+    generate_thematic_trends as identify_daily_themes_with_gemini
+)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-
-# Gemini Model to use, configurable via environment variable (from .env or GitHub Secrets)
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", 'gemini-pro')
-logging.info(f"Using Gemini model for daily brief: {GEMINI_MODEL}")
-
-def _robust_generate_content(prompt: str):
-    """
-    Helper function to safely call Gemini and extract text, handling common response structures.
-    """
-    try:
-        model = genai.GenerativeModel(GEMINI_MODEL)
-        response = model.generate_content(prompt)
-        
-        # Robustly check for response and content structure
-        if response and response.candidates:
-            if len(response.candidates) > 0 and response.candidates[0].content and len(response.candidates[0].content.parts) > 0:
-                return response.candidates[0].content.parts[0].text
-        logging.warning("Gemini response was empty or did not contain expected content parts for brief generation.")
-        return None
-    except Exception as e:
-        logging.error(f"Error during Gemini API call for brief generation: {e}")
-        return None
 
 # Placeholder for future: This would execute actual external search API
 def _execute_external_grounding_search(queries: List[str]) -> str:
@@ -87,52 +62,7 @@ def generate_grounding_queries_with_gemini(article_contents: List[Dict[str, Any]
     logging.error("Failed to generate grounding search queries from Gemini.")
     return []
 
-def generate_brief_deck(brief_content_md: str) -> str:
-    """
-    Uses Gemini to generate a 1-2 sentence brief deck (summary) for the homepage index.
-    """
-    prompt = f"""
-    From the following daily Bitcoin Mining brief content (Markdown format), generate a concise, 1-2 sentence summary (deck) suitable for a website's homepage or index listing.
-    The summary should capture the main essence or key highlights of the brief. It should not exceed 200 characters.
 
-    Brief Content:
-    ---
-    {brief_content_md[:10000]} # Limit brief content for deck generation
-    ---
-
-    Return only the 1-2 sentence summary.
-    """
-    result = _robust_generate_content(prompt)
-    if result:
-        deck = result.strip()
-        if len(deck) > 200:
-            deck = deck[:197] + "..." # Truncate if Gemini is too verbose
-        return deck
-    logging.warning("Failed to generate brief deck from Gemini, using generic fallback.")
-    return "A comprehensive daily summary of key developments in the Bitcoin mining industry."
-
-def identify_daily_themes_with_gemini(brief_content_md: str) -> List[str]:
-    """
-    Uses Gemini to identify 2-3 overarching themes or trends from the daily brief.
-    """
-    prompt = f"""
-    Analyze the following daily Bitcoin Mining brief (Markdown format) and identify 2-3 overarching, significant trends or themes.
-    Each theme should be a concise phrase (e.g., "Shift to AI Infrastructure", "Rising Energy Costs in Texas", "Regulatory Scrutiny in South America").
-    Return a comma-separated list of these themes.
-
-    Brief Content:
-    ---
-    {brief_content_md[:15000]} # Limit content for theme generation
-    ---
-
-    Example Output: Shift to AI Infrastructure, Expanding Geographies, Hashrate Growth
-    """
-    result = _robust_generate_content(prompt)
-    if result:
-        themes_str = result.strip()
-        return [theme.strip() for theme in themes_str.split(',') if theme.strip()]
-    logging.warning("Failed to generate thematic trends from Gemini.")
-    return []
 
 
 def generate_daily_brief(articles_for_brief: List[Dict[str, Any]], aggregated_grounding_context_text: str = "") -> Dict[str, str]:
