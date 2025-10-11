@@ -59,9 +59,9 @@ Add these secrets:
 
 1. Go to `Settings` > `Pages`
 2. Under "Source", select `Deploy from a branch`
-3. Select the branch that contains the `gh-pages/` directory
+3. Select your main branch (typically `main` or `master`) and the `/gh-pages` folder
 4. Click `Save`
-5. Your site will be live at `https://[username].github.io/[repo-name]/gh-pages/`
+5. Your site will be live at `https://[username].github.io/[repo-name]/` (it may take a few minutes to deploy)
 
 ### Step 5: Test It!
 
@@ -92,6 +92,7 @@ You can trigger workflows manually anytime:
 
 1. Add PNG files to `images/company_logos/`
    - Example: `marathon_logo.png`, `riot_logo.png`
+   - Note: Only PNG format is currently supported
 2. Update `COMPANY_LOGO_MAP` in `bitcoin_miner_bot/image_manager.py`
 
 ### Add More Conceptual Images
