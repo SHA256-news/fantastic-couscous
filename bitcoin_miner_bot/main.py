@@ -159,10 +159,8 @@ def publish_next_tweet():
         logging.error(f"Failed to generate tweet content for {url}")
         return False
     
-    # Get appropriate images
-    image_paths = image_manager.get_image_for_article(
-        html_title, full_content, source_title
-    )
+    # Get appropriate images based on tweet text
+    image_paths = image_manager.select_images_for_tweet(tweet_content)
     
     # Publish tweet
     success, tweet_data = twitter_publisher.publish_tweet(
