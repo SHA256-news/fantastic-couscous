@@ -1,0 +1,8 @@
+# requirements.txt
+python-dotenv
+google-generativeai
+tweepy
+EventRegistry
+requests
+beautifulsoup4
+PyGithub

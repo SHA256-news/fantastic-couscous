@@ -1,0 +1,124 @@
+name: Publish Daily Brief to GitHub Pages
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  publish-brief:
+    # Only run if the issue has the 'daily-brief' label
+    if: contains(github.event.issue.labels.*.name, 'daily-brief')
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Extract brief from issue
+        id: extract
+        run: |
+          # Extract the issue body and save it
+          echo "${{ github.event.issue.body }}" > /tmp/brief_content.md
+          
+          # Extract date from issue title (format: "Daily Bitcoin Mining Brief - YYYY-MM-DD")
+          BRIEF_DATE=$(echo "${{ github.event.issue.title }}" | grep -oP '\d{4}-\d{2}-\d{2}')
+          echo "date=${BRIEF_DATE}" >> $GITHUB_OUTPUT
+      
+      - name: Setup Pages directory
+        run: |
+          mkdir -p docs/briefs
+          
+          # Create index if it doesn't exist
+          if [ ! -f docs/index.html ]; then
+            cat > docs/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Bitcoin Mining Daily Briefs</title>
+              <style>
+                  body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                  h1 { color: #f7931a; }
+                  ul { list-style-type: none; padding: 0; }
+                  li { margin: 10px 0; }
+                  a { color: #0366d6; text-decoration: none; }
+                  a:hover { text-decoration: underline; }
+              </style>
+          </head>
+          <body>
+              <h1>Bitcoin Mining Daily Briefs</h1>
+              <p>Comprehensive daily analysis of Bitcoin mining news and developments.</p>
+              <h2>Recent Briefs</h2>
+              <ul id="brief-list">
+              </ul>
+              <script>
+                  // This will be populated by the publish workflow
+              </script>
+          </body>
+          </html>
+          EOF
+          fi
+      
+      - name: Convert Markdown to HTML and publish
+        run: |
+          BRIEF_DATE="${{ steps.extract.outputs.date }}"
+          
+          # Create HTML from markdown (simple conversion)
+          cat > docs/briefs/${BRIEF_DATE}.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Bitcoin Mining Brief - $BRIEF_DATE</title>
+              <style>
+                  body { font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+                  h1, h2, h3 { color: #f7931a; }
+                  a { color: #0366d6; }
+                  pre { background: #f6f8fa; padding: 16px; overflow: auto; }
+                  code { background: #f6f8fa; padding: 2px 6px; }
+              </style>
+          </head>
+          <body>
+              <a href="../index.html">← Back to All Briefs</a>
+          HTMLEOF
+          
+          # Simple markdown to HTML conversion using sed
+          sed 's/^# \(.*\)/<h1>\1<\/h1>/g' /tmp/brief_content.md | \
+          sed 's/^## \(.*\)/<h2>\1<\/h2>/g' | \
+          sed 's/^### \(.*\)/<h3>\1<\/h3>/g' | \
+          sed 's/^\* \(.*\)/<li>\1<\/li>/g' | \
+          sed 's/\*\*\(.*\)\*\*/<strong>\1<\/strong>/g' >> docs/briefs/${BRIEF_DATE}.html
+          
+          echo "</body></html>" >> docs/briefs/${BRIEF_DATE}.html
+          
+          # Add link to index
+          # (In production, you'd update the index with the new brief link)
+      
+      - name: Commit and push to gh-pages
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/
+          git commit -m "Publish daily brief for ${{ steps.extract.outputs.date }}"
+          git push
+      
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './docs'
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
