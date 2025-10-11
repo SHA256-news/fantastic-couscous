@@ -1,0 +1,10 @@
+2025-10-11 19:19:28,833 - image_manager - INFO - ImageManager initialized
+2025-10-11 19:19:28,833 - image_manager - INFO - Available images: 0 logos, 3 conceptual
+2025-10-11 19:19:28,833 - github_manager - WARNING - GitHub credentials not configured, using local state only
+2025-10-11 19:19:28,833 - github_manager - INFO - GitHubManager initialized
+2025-10-11 19:19:28,833 - github_manager - INFO - No existing state file, using default state
+2025-10-11 19:24:04,469 - image_manager - INFO - ImageManager initialized
+2025-10-11 19:24:04,469 - image_manager - INFO - Available images: 0 logos, 3 conceptual
+2025-10-11 19:24:04,469 - github_manager - WARNING - GitHub credentials not configured, using local state only
+2025-10-11 19:24:04,470 - github_manager - INFO - GitHubManager initialized
+2025-10-11 19:24:04,470 - github_manager - INFO - Loaded bot state from file

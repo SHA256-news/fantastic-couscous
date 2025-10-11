@@ -35,8 +35,9 @@ env/
 *.swo
 *~
 
-# Logs (runtime files, not tracked)
+# Logs (exclude all except bot.log for debugging)
 *.log
+!bot.log
 
 # OS
 .DS_Store
