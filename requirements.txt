@@ -1,0 +1,9 @@
+python-dotenv
+google-generativeai
+tweepy
+EventRegistry
+requests
+beautifulsoup4
+lxml
+PyGithub
+markdown
