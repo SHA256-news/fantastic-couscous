@@ -35,9 +35,8 @@ env/
 *.swo
 *~
 
-# Logs (keep bot.log tracked for debugging, can change if needed)
+# Logs (runtime files, not tracked)
 *.log
-!bot.log
 
 # OS
 .DS_Store
