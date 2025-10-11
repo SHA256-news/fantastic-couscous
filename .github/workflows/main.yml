@@ -1,0 +1,49 @@
+name: Bitcoin Mining News Bot
+
+on:
+  schedule:
+    # Run every 2 hours
+    - cron: '0 */2 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run bot
+      env:
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        EVENT_REGISTRY_API_KEY: ${{ secrets.EVENT_REGISTRY_API_KEY }}
+        GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+        TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
+        TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+        TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+        TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+        TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
+        TWITTER_USERNAME: ${{ secrets.TWITTER_USERNAME }}
+        GH_PAT: ${{ secrets.GH_PAT }}
+        IMAGE_LIBRARY_ACTIVE: ${{ secrets.IMAGE_LIBRARY_ACTIVE }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        python -m bitcoin_miner_bot.main
+        
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: bot-logs
+        path: bot.log
